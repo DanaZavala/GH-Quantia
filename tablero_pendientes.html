@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Pendientes — Quantia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #F4F2EE;
+    --surface: #FFFFFF;
+    --surface2: #F8F7F4;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1A1816;
+    --text2: #6B6860;
+    --text3: #9E9C96;
+    --purple: #534AB7; --purple-l: #EEEDFE; --purple-d: #3C3489;
+    --teal:   #0891B2; --teal-l:   #E6F1FB; --teal-d:   #0C447C;
+    --amber:  #D97706; --amber-l:  #FFFBEB; --amber-d:  #78350F;
+    --pink:   #D4537E; --pink-l:   #FBEAF0; --pink-d:   #72243E;
+    --green:  #3B6D11; --green-l:  #EAF3DE; --green-d:  #27500A;
+    --r: 10px;
+    --r-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Header */
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--text); }
+  .logo-dot { width: 28px; height: 28px; background: var(--purple); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-dot i { color: #fff; font-size: 16px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .stats-bar { display: flex; gap: 6px; }
+  .stat-pill { font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text2); background: var(--surface2); }
+
+  /* Toolbar */
+  .toolbar { padding: 1rem 2rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .btn-new { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--purple); color: #fff; border: none; border-radius: var(--r-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s; }
+  .btn-new:hover { background: var(--purple-d); }
+  .sep { width: 1px; height: 22px; background: var(--border2); }
+  select, .search-input { height: 34px; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 0 10px; border: 1px solid var(--border2); border-radius: var(--r-sm); background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; }
+  select:focus, .search-input:focus { border-color: var(--purple); }
+  .search-wrap { position: relative; }
+  .search-wrap i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 15px; pointer-events: none; }
+  .search-input { padding-left: 30px; width: 200px; }
+
+  /* Legend */
+  .legend { padding: .7rem 2rem; display: flex; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text2); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* Board */
+  .board { display: flex; gap: 12px; padding: 1.5rem 2rem; overflow-x: auto; align-items: flex-start; min-height: calc(100vh - 180px); }
+  .col { flex: 0 0 210px; min-width: 210px; }
+  .col-head { border-radius: var(--r-sm); padding: 7px 12px; font-size: 12px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .col-count { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 20px; }
+  .col-body { display: flex; flex-direction: column; gap: 8px; }
+  .empty-col { font-size: 12px; color: var(--text3); text-align: center; padding: 20px 10px; border: 1.5px dashed var(--border2); border-radius: var(--r); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 11px 13px; cursor: pointer; transition: box-shadow .15s, transform .1s; box-shadow: var(--shadow); }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .card-title { font-size: 12.5px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+  .card-desc { font-size: 11.5px; color: var(--text2); line-height: 1.5; margin-bottom: 7px; }
+  .card-area { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); margin-bottom: 7px; }
+  .area-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .card-date { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .card-owner { font-size: 11px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 1px 8px; }
+  .card-del { opacity: 0; font-size: 13px; color: var(--text3); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: opacity .15s, color .15s; }
+  .card:hover .card-del { opacity: 1; }
+  .card-del:hover { color: #E24B4A; }
+
+  /* Modal */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 1.5rem; width: 380px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .modal-header h3 { font-size: 15px; font-weight: 600; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 2px; border-radius: 4px; }
+  .modal-close:hover { color: var(--text); }
+  .field { margin-bottom: .85rem; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--text); outline: none; transition: border-color .15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--purple); }
+  .field textarea { min-height: 64px; resize: vertical; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+  .btn-cancel { height: 34px; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r-sm); color: var(--text2); cursor: pointer; }
+  .btn-cancel:hover { background: var(--surface2); }
+  .btn-save { height: 34px; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--purple); border: none; border-radius: var(--r-sm); color: #fff; font-weight: 500; cursor: pointer; }
+  .btn-save:hover { background: var(--purple-d); }
+
+  ::-webkit-scrollbar { height: 6px; width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"><i class="ti ti-layout-kanban"></i></div>
+    Tablero de Pendientes
+  </div>
+  <div class="header-right">
+    <div class="stats-bar" id="stats-bar"></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn-new" onclick="openModal()"><i class="ti ti-plus"></i> Nueva tarea</button>
+  <div class="sep"></div>
+  <select id="filter-area" onchange="render()">
+    <option value="">Todas las subáreas</option>
+    <option>Clima y Cultura</option>
+    <option>Desarrollo Organizacional</option>
+    <option>Administración de Personal</option>
+    <option>Reclutamiento y Selección</option>
+  </select>
+  <div class="search-wrap">
+    <i class="ti ti-search"></i>
+    <input class="search-input" type="text" id="filter-text" placeholder="Buscar tarea..." oninput="render()">
+  </div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#D4537E"></div>Clima y Cultura</div>
+  <div class="leg"><div class="leg-dot" style="background:#0891B2"></div>Desarrollo Organizacional</div>
+  <div class="leg"><div class="leg-dot" style="background:#D97706"></div>Administración de Personal</div>
+  <div class="leg"><div class="leg-dot" style="background:#534AB7"></div>Reclutamiento y Selección</div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nueva tarea</h3>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field"><label>Nombre de la tarea *</label><input type="text" id="f-name" placeholder="¿Qué hay que hacer?"></div>
+    <div class="field"><label>Descripción</label><textarea id="f-desc" placeholder="Detalle opcional..."></textarea></div>
+    <div class="field"><label>Subárea</label>
+      <select id="f-area">
+        <option>Clima y Cultura</option>
+        <option>Desarrollo Organizacional</option>
+        <option>Administración de Personal</option>
+        <option>Reclutamiento y Selección</option>
+      </select>
+    </div>
+    <div class="field"><label>Estado</label>
+      <select id="f-status">
+        <option>Solicitado</option>
+        <option>En proceso</option>
+        <option>Stand by</option>
+        <option>En revisión</option>
+        <option>Aprobado / Cerrado</option>
+      </select>
+    </div>
+    <div class="field"><label>Fecha de solicitud</label><input type="date" id="f-date"></div>
+    <div class="field"><label>Responsable</label><input type="text" id="f-owner" placeholder="Nombre..."></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS = [
+  {id:'Solicitado',         bg:'#E6F1FB', tc:'#0C447C', cc:'#B5D4F4'},
+  {id:'En proceso',         bg:'#FFFBEB', tc:'#78350F', cc:'#FAC775'},
+  {id:'Stand by',           bg:'#FBEAF0', tc:'#72243E', cc:'#F4C0D1'},
+  {id:'En revisión',        bg:'#EEEDFE', tc:'#3C3489', cc:'#AFA9EC'},
+  {id:'Aprobado / Cerrado', bg:'#EAF3DE', tc:'#27500A', cc:'#C0DD97'},
+];
+const AREA_COLOR = {
+  'Clima y Cultura':           '#D4537E',
+  'Desarrollo Organizacional': '#0891B2',
+  'Administración de Personal':'#D97706',
+  'Reclutamiento y Selección': '#534AB7',
+};
+const STORAGE_KEY = 'quantia_tablero_v1';
+
+function loadTasks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return [
+    {id:1, name:'Encuesta de clima Q2', desc:'Aplicar a toda el área', area:'Clima y Cultura', status:'En proceso', date:'2025-04-10', owner:'Dana Z.'},
+    {id:2, name:'Plan de desarrollo líderes', desc:'', area:'Desarrollo Organizacional', status:'Solicitado', date:'2025-04-15', owner:''},
+    {id:3, name:'Actualizar contratos temporales', desc:'', area:'Administración de Personal', status:'En revisión', date:'2025-03-28', owner:'Isaac C.'},
+    {id:4, name:'Proceso selección supervisores', desc:'', area:'Reclutamiento y Selección', status:'En proceso', date:'2025-04-05', owner:'Sandra M.'},
+    {id:5, name:'Taller de bienestar', desc:'', area:'Clima y Cultura', status:'Stand by', date:'2025-04-01', owner:''},
+    {id:6, name:'Cierre planilla marzo', desc:'', area:'Administración de Personal', status:'Aprobado / Cerrado', date:'2025-03-31', owner:'Lucia V.'},
+  ];
+}
+
+let tasks = loadTasks();
+let editing = null;
+let nextId = Math.max(...tasks.map(t=>t.id), 0) + 1;
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch(e) {}
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function render() {
+  const fa = document.getElementById('filter-area').value;
+  const ft = document.getElementById('filter-text').value.toLowerCase();
+  const filtered = tasks.filter(t =>
+    (!fa || t.area === fa) &&
+    (!ft || t.name.toLowerCase().includes(ft) || (t.owner||'').toLowerCase().includes(ft))
+  );
+
+  // Stats
+  const sb = document.getElementById('stats-bar');
+  sb.innerHTML = COLS.map(col => {
+    const n = tasks.filter(t => t.status === col.id).length;
+    return `<div class="stat-pill">${col.id}: ${n}</div>`;
+  }).join('');
+
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  COLS.forEach(col => {
+    const items = filtered.filter(t => t.status === col.id);
+    const colEl = document.createElement('div');
+    colEl.className = 'col';
+    colEl.innerHTML = `
+      <div class="col-head" style="background:${col.bg};color:${col.tc};">
+        ${col.id}
+        <span class="col-count" style="background:${col.cc};color:${col.tc};">${items.length}</span>
+      </div>
+      <div class="col-body" id="cb-${col.id.replace(/\s|\//g,'_')}"></div>
+    `;
+    board.appendChild(colEl);
+    const body = colEl.querySelector('.col-body');
+    if (!items.length) {
+      body.innerHTML = '<div class="empty-col">Sin tareas</div>';
+    } else {
+      items.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="card-title">${t.name}</div>
+            <button class="card-del" onclick="deleteTask(event,${t.id})" title="Eliminar"><i class="ti ti-trash"></i></button>
+          </div>
+          ${t.desc ? `<div class="card-desc">${t.desc}</div>` : ''}
+          <div class="card-area">
+            <span class="area-dot" style="background:${AREA_COLOR[t.area]}"></span>
+            ${t.area}
+          </div>
+          <div class="card-footer">
+            <div class="card-date"><i class="ti ti-calendar" style="font-size:12px"></i>${fmtDate(t.date)}</div>
+            ${t.owner ? `<div class="card-owner">${t.owner}</div>` : ''}
+          </div>
+        `;
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.card-del')) openModal(t.id);
+        });
+        body.appendChild(card);
+      });
+    }
+  });
+}
+
+function openModal(id) {
+  editing = id || null;
+  const today = new Date().toISOString().split('T')[0];
+  if (id) {
+    const t = tasks.find(x => x.id === id);
+    document.getElementById('modal-title').textContent = 'Editar tarea';
+    document.getElementById('f-name').value = t.name;
+    document.getElementById('f-desc').value = t.desc;
+    document.getElementById('f-area').value = t.area;
+    document.getElementById('f-status').value = t.status;
+    document.getElementById('f-date').value = t.date;
+    document.getElementById('f-owner').value = t.owner || '';
+  } else {
+    document.getElementById('modal-title').textContent = 'Nueva tarea';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-area').value = 'Clima y Cultura';
+    document.getElementById('f-status').value = 'Solicitado';
+    document.getElementById('f-date').value = today;
+    document.getElementById('f-owner').value = '';
+  }
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('f-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  editing = null;
+}
+
+function saveTask() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('f-name').focus(); return; }
+  if (editing) {
+    const t = tasks.find(x => x.id === editing);
+    t.name   = name;
+    t.desc   = document.getElementById('f-desc').value.trim();
+    t.area   = document.getElementById('f-area').value;
+    t.status = document.getElementById('f-status').value;
+    t.date   = document.getElementById('f-date').value;
+    t.owner  = document.getElementById('f-owner').value.trim();
+  } else {
+    tasks.push({ id: nextId++, name,
+      desc:   document.getElementById('f-desc').value.trim(),
+      area:   document.getElementById('f-area').value,
+      status: document.getElementById('f-status').value,
+      date:   document.getElementById('f-date').value,
+      owner:  document.getElementById('f-owner').value.trim(),
+    });
+  }
+  save(); closeModal(); render();
+}
+
+function deleteTask(e, id) {
+  e.stopPropagation();
+  if (confirm('¿Eliminar esta tarea?')) {
+    tasks = tasks.filter(t => t.id !== id);
+    save(); render();
+  }
+}
+
+document.getElementById('overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+render();
+</script>
+</body>
+</html>
